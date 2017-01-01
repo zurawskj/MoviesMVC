@@ -1,6 +1,9 @@
 ﻿using System.Web.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MoviesMVC.Controllers;
+using Movies.Services;
+using MoviesMVC.Tests.Mocks;
+using System.Threading.Tasks;
 
 namespace MoviesMVC.Tests.Controllers
 {
@@ -8,13 +11,13 @@ namespace MoviesMVC.Tests.Controllers
     public class HomeControllerTest
     {
         [TestMethod]
-        public void Index()
+        public async Task Index()
         {
             // Arrange
-            HomeController controller = new HomeController();
+            HomeController controller = new HomeController(new MockMovieRepository());
 
             // Act
-            ViewResult result = controller.Index() as ViewResult;
+            ViewResult result = await controller.Index() as ViewResult;
 
             // Assert
             Assert.IsNotNull(result);
@@ -24,7 +27,7 @@ namespace MoviesMVC.Tests.Controllers
         public void About()
         {
             // Arrange
-            HomeController controller = new HomeController();
+            HomeController controller = new HomeController(new MockMovieRepository());
 
             // Act
             ViewResult result = controller.About() as ViewResult;
@@ -37,7 +40,7 @@ namespace MoviesMVC.Tests.Controllers
         public void Contact()
         {
             // Arrange
-            HomeController controller = new HomeController();
+            HomeController controller = new HomeController(new MockMovieRepository());
 
             // Act
             ViewResult result = controller.Contact() as ViewResult;
