@@ -1,6 +1,7 @@
-﻿using System.Data.Entity;
+﻿using Movies.Data.Models;
+using System.Data.Entity;
 
-namespace Movies.Services
+namespace Movies.Data
 {
 
     public class MovieDbContext : DbContext
@@ -11,5 +12,6 @@ namespace Movies.Services
         }
 
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<Genre> Genres { get; set; }
     }
 }

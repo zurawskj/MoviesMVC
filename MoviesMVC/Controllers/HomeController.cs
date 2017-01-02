@@ -1,29 +1,26 @@
-﻿using Movies.Services;
+﻿using AutoMapper;
+using Movies.Services;
 using MoviesMVC.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace MoviesMVC.Controllers
 {
     public class HomeController : Controller
     {
-        private IMovieRepository _movieRepository;
+        private IMovieService _movieRepository;
+        private IMapper _mapper;
 
-        public HomeController(IMovieRepository movieRepository)
+        public HomeController(IMovieService movieRepository, IMapper mapper)
         {
             _movieRepository = movieRepository;
+            _mapper = mapper;
         }
 
         public async Task<ActionResult> Index()
         {
-            List<Movie> movies = await _movieRepository.GetAllAsync();
-            List<MovieViewModel> movieViewModels = movies.ConvertAll(m => m.ToViewModel());
-
-            return View(movieViewModels);
+            return View(_mapper.Map<List<MovieViewModel>>(await _movieRepository.GetAllAsync()));
         }
 
         public ActionResult About()

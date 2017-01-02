@@ -2,22 +2,37 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MoviesMVC.Controllers;
 using System.Web.Mvc;
-using System.Data.Entity;
 using MoviesMVC.Models;
-using Movies.Services;
 using MoviesMVC.Tests.Mocks;
 using System.Threading.Tasks;
+using Movies.Services.DomainModels;
+using AutoMapper;
 
 namespace MoviesMVC.Tests.Controllers
 {
+
     [TestClass]
     public class MoviesControllerTest
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<MovieViewModel, MovieDomainModel>();
+                cfg.CreateMap<MovieDomainModel, MovieViewModel>();
+            });
+            mapper = config.CreateMapper();
+        }
+
+        private IMapper mapper;
+
+
         [TestMethod]
         public async Task Index_IsNotNull()
         {
             //Arrange
-            MoviesController controller = new MoviesController(new MockMovieRepository());
+            MoviesController controller = new MoviesController(new MockMovieRepository(), mapper);
 
             //Act
             ViewResult result = await controller.Index() as ViewResult;
@@ -31,24 +46,24 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            await movies.Add(new Movie { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
-            MoviesController controller = new MoviesController(movies);
+            await movies.Add(new MovieDomainModel {Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
+            MoviesController controller = new MoviesController(movies, mapper);
 
             //Act
-            ViewResult result = await controller.Details(1) as ViewResult;
+            ViewResult result = await controller.Details(0) as ViewResult;
 
             //Assert
-            Assert.AreEqual(((MovieViewModel)result.Model).Genre, "Horror");
+            Assert.AreEqual(((MovieViewModel)result.Model).Genre, "Horro");
         }
 
         [TestMethod]
-        public void CreateNoParams_IsNotNull()
+        public async Task CreateNoParams_IsNotNull()
         {
             //Arrange
-            MoviesController controller = new MoviesController(new MockMovieRepository());
+            MoviesController controller = new MoviesController(new MockMovieRepository(), mapper);
 
             //Act
-            ViewResult result = controller.Create() as ViewResult;
+            ViewResult result = await controller.Create() as ViewResult;
 
             //Assert
             Assert.IsNotNull(result);
@@ -59,14 +74,14 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            MoviesController controller = new MoviesController(movies);
-            MovieViewModel movie = new MovieViewModel { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" };
+            MoviesController controller = new MoviesController(movies, mapper);
+            MovieViewModel movie = new MovieViewModel { Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" };
 
             //Act
             ViewResult result = await controller.Create(movie) as ViewResult;
 
             //Assert
-            Assert.AreEqual(movies.GetByIdAsync(1).Result.Title, "The Shining");
+            Assert.AreEqual(movies.GetByIdAsync(0).Result.Title, "The Shining");
         }
 
         [TestMethod]
@@ -74,11 +89,11 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            await movies.Add(new Movie { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
-            MoviesController controller = new MoviesController(movies);
+            await movies.Add(new MovieDomainModel { Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
+            MoviesController controller = new MoviesController(movies, mapper);
 
             //Act
-            ViewResult result = await controller.Edit(1) as ViewResult;
+            ViewResult result = await controller.Edit(0) as ViewResult;
 
             //Assert
             Assert.AreEqual(((MovieViewModel)result.Model).Title, "The Shining");
@@ -89,14 +104,14 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            await movies.Add(new Movie { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
-            MoviesController controller = new MoviesController(movies);
+            await movies.Add(new MovieDomainModel { Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
+            MoviesController controller = new MoviesController(movies, mapper);
 
             //Act
-            ViewResult result = await controller.Edit(new MovieViewModel { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Dimming" }) as ViewResult;
+            ViewResult result = await controller.Edit(new MovieViewModel { ID = 0, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Dimming" }) as ViewResult;
 
             //Assert
-            Assert.AreEqual(movies.GetByIdAsync(1).Result.Title, "The Dimming");
+            Assert.AreEqual(movies.GetByIdAsync(0).Result.Title, "The Dimming");
         }
 
         [TestMethod]
@@ -104,11 +119,11 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            await movies.Add(new Movie { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
-            MoviesController controller = new MoviesController(movies);
+            await movies.Add(new MovieDomainModel { Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
+            MoviesController controller = new MoviesController(movies, mapper);
 
             //Act
-            ViewResult result = await controller.Delete(1) as ViewResult;
+            ViewResult result = await controller.Delete(0) as ViewResult;
 
             //Assert
             Assert.AreEqual(((MovieViewModel)result.Model).Title, "The Shining");
@@ -119,11 +134,11 @@ namespace MoviesMVC.Tests.Controllers
         {
             //Arrange
             MockMovieRepository movies = new MockMovieRepository();
-            await movies.Add(new Movie { ID = 1, Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
-            MoviesController controller = new MoviesController(movies);
+            await movies.Add(new MovieDomainModel { Genre = "Horror", Price = 10, ReleaseDate = new DateTime(1980, 5, 23), Title = "The Shining" });
+            MoviesController controller = new MoviesController(movies, mapper);
 
             //Act
-            ViewResult result = await controller.DeleteConfirmed(1) as ViewResult;
+            ViewResult result = await controller.DeleteConfirmed(0) as ViewResult;
 
             //Assert
             Assert.AreEqual(movies.GetAllAsync().Result.Count, 0);

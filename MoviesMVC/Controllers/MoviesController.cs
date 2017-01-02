@@ -2,26 +2,29 @@
 using System.Net;
 using System.Web.Mvc;
 using MoviesMVC.Models;
-using Movies.Services;
 using System.Collections.Generic;
+using MoviesMVC.ViewModels;
+using Movies.Services;
+using Movies.Services.DomainModels;
+using AutoMapper;
 
 namespace MoviesMVC.Controllers
 {
     public class MoviesController : Controller
     {
-        private IMovieRepository _movieRepository;
+        private IMovieService _movieService;
+        private IMapper _mapper;
 
-        public MoviesController(IMovieRepository movieRepository)
+        public MoviesController(IMovieService movieService, IMapper mapper)
         {
-            _movieRepository = movieRepository;
+            _movieService = movieService;
+            _mapper = mapper;
         }
 
         // GET: Movies
         public async Task<ActionResult> Index()
         {
-            List<Movie> movies = await _movieRepository.GetAllAsync();
-            List<MovieViewModel> movieViewModels = movies.ConvertAll(m => m.ToViewModel());
-            return View(movieViewModels);
+            return View(_mapper.Map<List<MovieViewModel>>(await _movieService.GetAllAsync()));
         }
 
         // GET: Movies/Details/5
@@ -31,8 +34,7 @@ namespace MoviesMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Movie movie = await _movieRepository.GetByIdAsync(id);
-            MovieViewModel movieViewModel = movie.ToViewModel();
+            MovieViewModel movieViewModel = _mapper.Map<MovieViewModel>(await _movieService.GetByIdAsync(id));
             if (movieViewModel == null)
             {
                 return HttpNotFound();
@@ -41,9 +43,11 @@ namespace MoviesMVC.Controllers
         }
 
         // GET: Movies/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
-            return View();
+            CreateMovieViewModel viewModel = new CreateMovieViewModel();
+            viewModel.Genres = await _movieService.GetAllGenres();
+            return View(viewModel);
         }
 
         // POST: Movies/Create
@@ -55,7 +59,10 @@ namespace MoviesMVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _movieRepository.Add(movieViewModel.ToMovie());
+                int result = await _movieService.Add(_mapper.Map<MovieDomainModel>(movieViewModel));
+                if (result == -1)
+                    return new HttpStatusCodeResult(500);
+
                 return RedirectToAction("Index");
             }
 
@@ -69,8 +76,7 @@ namespace MoviesMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Movie movie = await _movieRepository.GetByIdAsync(id);
-            MovieViewModel movieViewModel = movie.ToViewModel();
+            MovieViewModel movieViewModel = _mapper.Map<MovieViewModel>(await _movieService.GetByIdAsync(id));
             if (movieViewModel == null)
             {
                 return HttpNotFound();
@@ -87,7 +93,10 @@ namespace MoviesMVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _movieRepository.Edit(movieViewModel.ToMovie());
+                int result = await _movieService.Edit(_mapper.Map<MovieDomainModel>(movieViewModel));
+                if (result == -1)
+                    return new HttpStatusCodeResult(500);
+
                 return RedirectToAction("Index");
             }
             return View(movieViewModel);
@@ -100,8 +109,7 @@ namespace MoviesMVC.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Movie movie = await _movieRepository.GetByIdAsync(id);
-            MovieViewModel movieViewModel = movie.ToViewModel();
+            MovieViewModel movieViewModel = _mapper.Map<MovieViewModel>(await _movieService.GetByIdAsync(id));
             if (movieViewModel == null)
             {
                 return HttpNotFound();
@@ -114,8 +122,11 @@ namespace MoviesMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            Movie movie = await _movieRepository.GetByIdAsync(id);
-            await _movieRepository.Delete(movie);
+            MovieDomainModel movie = await _movieService.GetByIdAsync(id);
+            int result = await _movieService.Delete(movie);
+            if (result == -1)
+                return new HttpStatusCodeResult(500);
+
             return RedirectToAction("Index");
         }
     }

@@ -1,8 +1,9 @@
 using System;
 using Microsoft.Practices.Unity;
-using Microsoft.Practices.Unity.Configuration;
-using MoviesMVC.Models;
 using Movies.Services;
+using AutoMapper;
+using Movies.Services.DomainModels;
+using MoviesMVC.Models;
 
 namespace MoviesMVC.App_Start
 {
@@ -40,7 +41,12 @@ namespace MoviesMVC.App_Start
             // TODO: Register your types here
             // container.RegisterType<IProductRepository, ProductRepository>();
 
-            container.RegisterType<IMovieRepository, MovieRepository>();
+            container.RegisterType<IMovieService, MovieService>();
+            container.RegisterInstance<IMapper>(new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<MovieViewModel, MovieDomainModel>();
+                cfg.CreateMap<MovieDomainModel, MovieViewModel>();
+            }).CreateMapper());
         }
     }
 }

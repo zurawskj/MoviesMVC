@@ -1,4 +1,4 @@
-﻿@model MoviesMVC.Models.MovieViewModel
+﻿@model MoviesMVC.ViewModels.CreateMovieViewModel
 
 @{
     ViewBag.Title = "Create";
@@ -34,7 +34,7 @@
         <div class="form-group">
             @Html.LabelFor(model => model.Genre, htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
-                @Html.EditorFor(model => model.Genre, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.DropDownListFor(model => model.Genre, new SelectList(Model.Genres), "--Select Genre--")
                 @Html.ValidationMessageFor(model => model.Genre, "", new { @class = "text-danger" })
             </div>
         </div>
