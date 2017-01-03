@@ -6,6 +6,7 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using MoviesMVC.Models;
+using Microsoft.Practices.Unity;
 
 namespace MoviesMVC.Controllers
 {
@@ -15,6 +16,7 @@ namespace MoviesMVC.Controllers
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
 
+        [InjectionConstructor()]
         public AccountController()
         {
         }
